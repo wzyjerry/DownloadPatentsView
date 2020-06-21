@@ -4,6 +4,7 @@ from os.path import exists, getsize, join
 from urllib.request import urlretrieve
 from datetime import datetime
 import requests
+import subprocess
 
 page = requests.get('https://www.patentsview.org/download/')
 magic_str = r'href\w*=\w*"([^"]+.zip)"'
@@ -20,18 +21,9 @@ def remote_filesize(url):
 def local_filesize(filename):
     return int(getsize(filename))
 
-def cbk(a, b, c):
-    per = 100.0 * a * b / c
-    if per > 100:
-        per = 100
-    print(datetime.now(), '%.2f%%' % per)
-
-def auto_down(url, filename):
-    try:
-        urlretrieve(url, filename, cbk)
-    except:
-        print('Network conditions is not good.Reloading.')
-        auto_down(url, filename)
+def download(url, fullname):
+    cmd = 'wget %s -O %s' % (url, fullname)
+    subprocess.call(cmd, shell=True)
 
 # Check if folder exists
 data_root = join('data', timestamp)
@@ -49,7 +41,7 @@ for url in filelist:
     while True:
         if not exists(fullname):
             print(datetime.now(), 'Downloading %s:' % filename)
-            auto_down(url, fullname)
+            download(url, fullname)
             print(datetime.now(), 'Downloaded.')
         else:
             if local_filesize(fullname) == except_filesize:
